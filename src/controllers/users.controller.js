@@ -15,7 +15,9 @@ export const getUsers = async (req, res) => {
 
 export const createUser = async (req, res) => {
     const { name, email, password, role } = req.body;
+
     const slug = slugify(name, { lower: true});
+    
     const pool = await getConnection();
     await pool.request().query(`
         EXEC Create_User

@@ -8,6 +8,7 @@ import registrationsRoutes from './routes/registrations.route';
 import reservationsRoutes from './routes/reservations.route'; 
 import usersRoutes from './routes/users.route'; 
 import hotelsRoutes from './routes/hotels.route'; 
+import placesRoutes from './routes/places.route'; 
 
 const app = express();
 
@@ -19,7 +20,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
 //routes
-app.use(agenciesRoutes, clientsRoutes, managersRoutes, 
+app.use(agenciesRoutes, clientsRoutes, managersRoutes, placesRoutes,
     registrationsRoutes, reservationsRoutes, usersRoutes, hotelsRoutes);
 
 export default app;
