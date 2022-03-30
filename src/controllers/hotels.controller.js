@@ -1,4 +1,4 @@
-
+import slugify from "slugify";
 import { getConnection } from "../database/connection";
 
 export const getHotels = async (req, res) => {
@@ -12,6 +12,21 @@ export const getHotels = async (req, res) => {
         }
     });
 };
+
+export const getHotel = async (req, res) => {
+    const pool = await getConnection();
+    const uri = req.params.cod;
+    console.log(req.params.cod);
+    const result = await pool.request().query(`SELECT * FROM Hotels WHERE Slug LIKE 'hostal-wilma'' `);    
+    res.status(200).json({
+        status: 'success',
+        results: result.recordset.length,
+        data: {
+            hotel: result.recordset
+        }
+    });
+};
+
 
 export const getHotelsUyuni = async (req, res) => {
     const pool = await getConnection();
@@ -107,5 +122,28 @@ export const getHotelsTorotoro = async (req, res) => {
         data: {
             hotels: result.recordset
         }
+    });
+};
+
+
+export const createHotel = async (req, res) => {
+    const { name, description, location, manager, image_url } = req.body;
+    const slug = slugify(name, { lower: true});
+    
+    const pool = await getConnection();
+    await pool.request().query(`
+        EXEC Create_Hotel
+        @Name = '${name}', 
+        @Slug = '${slug}', 
+        @Description = '${description}', 
+        @Location = '${location}', 
+        @Cod_Manager = '${manager}',
+        @Image_Url = '${image_url}'
+        
+    `); 
+    console.log(name, description, location, manager );
+    res.json({
+        status: 200,
+        message: "Hotel creado con éxito"
     });
 };

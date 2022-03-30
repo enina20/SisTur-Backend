@@ -12,3 +12,24 @@ export const getManagers = async (req, res) => {
         }
     });
 };
+
+export const createManager = async (req, res) => {
+    const { nit, id, cellphone, age, city, user } = req.body;
+    
+    const pool = await getConnection();
+    await pool.request().query(`
+        EXEC Create_Manager
+        @Manager_nit = '${nit}',
+        @Manager_id = '${id}',
+        @Manager_Cell_Phone = '${cellphone}', 
+        @Manager_Age = '${age}', 
+        @Manager_City = '${city}', 
+        @Cod_User = ${user}
+        
+    `); 
+    console.log(nit, id, cellphone, age, city, user );
+    res.json({
+        status: 200,
+        message: "Usuario Administrador creado con éxito"
+    });
+};

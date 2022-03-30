@@ -12,3 +12,21 @@ export const getRegistrations = async (req, res) => {
         }
     });
 };
+
+export const createRegistration = async (req, res) => {
+    const { name, email, password, role } = req.body;
+
+    const slug = slugify(name, { lower: true});
+    
+    const pool = await getConnection();
+    await pool.request().query(`
+        EXEC Create_User
+        @User_Name_ = '${name}', 
+        @User_Slug = '${slug}', 
+        @User_Email = '${email}', 
+        @User_Password = '${password}', 
+        @Cod_Role = ${role}
+        
+    `); 
+    console.log(name , email, password, role );
+};

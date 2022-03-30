@@ -29,4 +29,8 @@ export const createUser = async (req, res) => {
         
     `); 
     console.log(name , email, password, role );
+    res.json({
+        status: 200,
+        message: "Usuario creado con éxito"
+    });
 };

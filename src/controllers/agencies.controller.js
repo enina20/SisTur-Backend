@@ -1,4 +1,4 @@
-
+import slugify from "slugify";
 import { getConnection } from "../database/connection";
 
 export const getAgencies = async (req, res) => {
@@ -10,6 +10,20 @@ export const getAgencies = async (req, res) => {
         results: result.recordset.length,
         data: {
             agencies: result.recordset
+        }
+    });
+};
+
+export const getAgency = async (req, res) => {
+    const pool = await getConnection();
+    const uri = req.params.cod;
+    console.log(req.params.cod);
+    const result = await pool.request().query(`SELECT * FROM Agencies WHERE Cod_Agency =  ${uri} `);    
+    res.status(200).json({
+        status: 'success',
+        results: result.recordset.length,
+        data: {
+            agency: result.recordset
         }
     });
 };
@@ -99,3 +113,24 @@ export const getAgenciesTorotoro = async (req, res) => {
     });
 };
 
+export const createAgency = async (req, res) => {
+    const { name, description, location, manager, image_url } = req.body;
+    const slug = slugify(name, { lower: true});
+    
+    const pool = await getConnection();
+    await pool.request().query(`
+        EXEC Create_Agency
+        @Name = '${name}', 
+        @Slug = '${slug}', 
+        @Description = '${description}', 
+        @Location = '${location}', 
+        @Cod_Manager = '${manager}',
+        @Image_Url = '${image_url}'
+        
+    `); 
+    console.log(name, description, location, manager );
+    res.json({
+        status: 200,
+        message: "Agencia creada con éxito"
+    });
+};
