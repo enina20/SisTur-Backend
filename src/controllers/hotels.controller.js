@@ -147,3 +147,24 @@ export const createHotel = async (req, res) => {
         message: "Hotel creado con éxito"
     });
 };
+
+export const updateHotel = async (req, res) => {
+    const {name, description, location} = req.body;
+    const slug = slugify(name, { lower: true});
+    const cod = req.params.cod;
+    
+    const pool = await getConnection();
+    await pool.request().query(`
+        EXEC Update_Hotel
+        @Cod_Hotel = '${cod}',
+        @Name = '${name}', 
+        @Slug = '${slug}', 
+        @Description = '${description}', 
+        @Location = '${location}'        
+    `); 
+    // console.log(name, description, location );
+    res.json({
+        status: 200,
+        message: "Información del hotel actualizado con éxito"
+    });
+};

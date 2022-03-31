@@ -16,9 +16,8 @@ export const getAgencies = async (req, res) => {
 
 export const getAgency = async (req, res) => {
     const pool = await getConnection();
-    const uri = req.params.cod;
-    console.log(req.params.cod);
-    const result = await pool.request().query(`SELECT * FROM Agencies WHERE Cod_Agency =  ${uri} `);    
+    const slug = req.params.cod;
+    const result = await pool.request().query(`SELECT * FROM Agencies WHERE Slug LIKE '${slug}' `);    
     res.status(200).json({
         status: 'success',
         results: result.recordset.length,
@@ -132,5 +131,28 @@ export const createAgency = async (req, res) => {
     res.json({
         status: 200,
         message: "Agencia creada con éxito"
+    });
+};
+
+export const updateAgency = async (req, res) => {
+    const {name, description, location, } = req.body;
+    
+    const cod = req.params.cod;
+    
+    const slug = slugify(name, { lower: true});
+    
+    const pool = await getConnection();
+    await pool.request().query(`
+        EXEC Update_Agency
+        @Cod_Agency = '${cod}',
+        @Name = '${name}', 
+        @Slug = '${slug}', 
+        @Description = '${description}', 
+        @Location = '${location}'        
+    `); 
+    // console.log(name, description, location );
+    res.json({
+        status: 200,
+        message: "Agencia actualizada con éxito"
     });
 };

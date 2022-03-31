@@ -26,32 +26,39 @@ export const login = async (req, res) => {
                 });        
             }
         }else{
-            const manager = await pool.request().query(
-                `SELECT * FROM Managers
-                WHERE Cod_User = '${cod_user}'`); 
-            
-            const cod_manager = manager.recordset[0].Cod_Manager;   
-    
-            const hotels = await pool.request().query(
-                `SELECT * FROM Hotels
-                WHERE Cod_Manager = '${cod_manager}'`);
-            
-            const agencies = await pool.request().query(
-                `SELECT * FROM Agencies
-                WHERE Cod_Manager = '${cod_manager}'`);
-    
-            if(manager.recordset.length >=1){
+                if(user.recordset[0].Cod_Role == 2) {
+                const manager = await pool.request().query(
+                    `SELECT * FROM Managers
+                    WHERE Cod_User = '${cod_user}'`); 
+                
+                const cod_manager = manager.recordset[0].Cod_Manager;   
+        
+                const hotels = await pool.request().query(
+                    `SELECT * FROM Hotels
+                    WHERE Cod_Manager = '${cod_manager}'`);
+                
+                const agencies = await pool.request().query(
+                    `SELECT * FROM Agencies
+                    WHERE Cod_Manager = '${cod_manager}'`);
+        
+                if(manager.recordset.length >=1){
+                    res.status(200).json({
+                        status: 'success',
+                        user : user.recordset,
+                        manager:manager.recordset,
+                        hotel:hotels.recordset, 
+                        agency:agencies.recordset             
+                    });        
+                }
+            } else{                
                 res.status(200).json({
                     status: 'success',
-                    user : user.recordset,
-                    manager:manager.recordset,
-                    hotel:hotels.recordset, 
-                    agency:agencies.recordset             
-                });        
-            }
-        }          
+                    user : user.recordset           
+                }); 
+            } 
+        }         
     }else{
-        res.status(500).json({
+        res.status(200).json({
             status: 'error',
             message : 'El correo o contraseña esta incorrecto'        
         });

@@ -32,3 +32,24 @@ export const createClient = async (req, res) => {
         message: "Usuario Cliente creado con éxito"
     });
 };
+
+export const updateClient = async (req, res) => {
+    const {id, cellphone, age, city} = req.body;
+    
+    const cod = req.params.cod;
+    
+    const pool = await getConnection();
+    await pool.request().query(`
+        EXEC Update_Client
+        @Cod_Client = '${cod}',
+        @Client_Id = '${id}', 
+        @Client_Cell_Phone = '${cellphone}', 
+        @Client_Age = '${age}', 
+        @Client_City = '${city}'        
+    `); 
+    // console.log(name, description, location );
+    res.json({
+        status: 200,
+        message: "Información actualizada con éxito"
+    });
+};

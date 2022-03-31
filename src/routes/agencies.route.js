@@ -1,6 +1,6 @@
 import {Router} from 'express';
 
-import { createAgency, getAgencies, getAgenciesCoroico, getAgenciesMadidi, getAgenciesSajama, getAgenciesTorotoro, getAgenciesUyuni, getAgency } from '../controllers/agencies.controller'
+import { createAgency, getAgencies, getAgenciesCoroico, getAgenciesMadidi, getAgenciesSajama, getAgenciesTorotoro, getAgenciesUyuni, getAgency, updateAgency } from '../controllers/agencies.controller'
 
 const router = Router();
 
@@ -15,6 +15,6 @@ router.get('/api/v1/agencies/torotoro', getAgenciesTorotoro)
 router.post('/api/v1/agencies', createAgency)
 router.get('/api/v1/agencies/:cod', getAgency)
 router.delete('/api/v1/agencies', getAgencies)
-router.put('/api/v1/agencies', getAgencies)
+router.put('/api/v1/agencies/:cod', updateAgency)
 
 export default router;

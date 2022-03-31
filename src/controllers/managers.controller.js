@@ -33,3 +33,24 @@ export const createManager = async (req, res) => {
         message: "Usuario Administrador creado con éxito"
     });
 };
+
+export const updateManager = async (req, res) => {
+    const {nit, id, cellphone, age, city} = req.body;
+    const cod = req.params.cod;
+    
+    const pool = await getConnection();
+    await pool.request().query(`
+        EXEC Update_Manager
+        @Cod_Manager = '${cod}',
+        @Manager_nit = '${nit}', 
+        @Manager_id = '${id}', 
+        @Manager_Cell_Phone = '${cellphone}', 
+        @Manager_Age = '${age}',
+        @Manager_City = '${city}'       
+    `); 
+    // console.log(name, description, location );
+    res.json({
+        status: 200,
+        message: "Información actualizada con éxito"
+    });
+};
