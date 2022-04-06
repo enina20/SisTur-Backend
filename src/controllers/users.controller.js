@@ -23,7 +23,7 @@ export const createUser = async (req, res) => {
                                               FROM Users
                                               WHERE User_Email LIKE '${email}'`); 
                 
-    if(user){
+    if(user.recordset.length >= 1){
         res.json({
             status: 200,
             message: "El usuario ya esta registrado",
