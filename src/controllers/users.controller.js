@@ -19,18 +19,36 @@ export const createUser = async (req, res) => {
     const slug = slugify(name, { lower: true});
     
     const pool = await getConnection();
-    await pool.request().query(`
+    const user = await pool.request().query(`SELECT *
+                                              FROM Users
+                                              WHERE User_Email LIKE '${email}'`); 
+                
+    if(user){
+        res.json({
+            status: 200,
+            message: "El usuario ya esta registrado",
+        });
+
+    }else{
+        await pool.request().query(`
         EXEC Create_User
         @User_Name_ = '${name}', 
         @User_Slug = '${slug}', 
         @User_Email = '${email}', 
         @User_Password = '${password}', 
-        @Cod_Role = ${role}
+        @Cod_Role = ${role}      
+        `); 
+        const result = await pool.request().query(`SELECT *
+                                                FROM Users
+                                                WHERE User_Slug = '${slug}'`); 
         
-    `); 
-    console.log(name , email, password, role );
-    res.json({
-        status: 200,
-        message: "Usuario creado con éxito"
-    });
+        res.json({
+            status: 200,
+            message: "Usuario creado con éxito",
+            results: result.recordset.length,
+            data: {
+                user: result.recordset
+            }
+        });
+    }    
 };

@@ -3,12 +3,32 @@ import { getConnection } from "../database/connection";
 
 export const getClients = async (req, res) => {
     const pool = await getConnection();
-    const result = await pool.request().query('SELECT * FROM Clients');    
+    const result = await pool.request().query(`SELECT xu.User_Name_, xu.User_Slug, xu.User_Email,
+                                            xc.Client_id, xc.Cell_Phone, xc.Age, xc.City 
+                                            FROM Users xu, Clients xc
+                                            WHERE xu.Cod_User = xc.Cod_User `);    
     res.status(200).json({
         status: 'success',
         results: result.recordset.length,
         data: {
             clients: result.recordset
+        }
+    });
+};
+
+export const getClient = async (req, res) => {
+    const pool = await getConnection();
+    const slug = req.params.cod;
+    const result = await pool.request().query(`SELECT xu.User_Name_, xu.User_Slug, xu.User_Email,
+                                              xc.Client_id, xc.Cell_Phone, xc.Age, xc.City 
+                                              FROM Users xu, Clients xc
+                                              WHERE xu.User_Slug = '${slug}'
+                                              AND xu.Cod_User = xc.Cod_User `);    
+    res.status(200).json({
+        status: 'success',
+        results: result.recordset.length,
+        data: {
+            client: result.recordset
         }
     });
 };
