@@ -3,7 +3,8 @@ import { getConnection } from "../database/connection";
 
 export const getHotels = async (req, res) => {
     const pool = await getConnection();
-    const result = await pool.request().query('SELECT * FROM Hotels');    
+    const result = await pool.request().query(`SELECT * FROM Hotels
+                                                WHERE Status = 1`);    
     res.status(200).json({
         status: 'success',
         results: result.recordset.length,
@@ -34,7 +35,8 @@ export const getHotelsForPlace = async (req, res) => {
                                                 FROM Places XP, Hotels XH, Places_Hotels XPH
                                                 WHERE XP.Slug like '${slug}'
                                                 AND XP.Cod_Place = XPH.Cod_Place
-                                                AND XPH.Cod_Hotel = XH.Cod_Hotel`);    
+                                                AND XPH.Cod_Hotel = XH.Cod_Hotel
+                                                AND XH.Status = 1`);    
     res.status(200).json({
         status: 'success',
         results: result.recordset.length,
@@ -84,5 +86,17 @@ export const updateHotel = async (req, res) => {
     res.json({
         status: 200,
         message: "Información del hotel actualizado con éxito"
+    });
+};
+
+export const deleteHotel = async (req, res) => {
+    const cod = req.params.cod;        
+    const pool = await getConnection();
+    await pool.request().query(
+        `EXEC Delete_Hotel
+        @Cod_Hotel = '${cod}'`);     
+    res.json({
+        status: 200,
+        message: "El hotel ha sido eliminado"
     });
 };

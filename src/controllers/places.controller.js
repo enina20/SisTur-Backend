@@ -31,3 +31,15 @@ export const createPlace = async (req, res) => {
     `); 
     console.log(name , email, password, role );
 };
+
+export const deletePlace = async (req, res) => {
+    const cod = req.params.cod;        
+    const pool = await getConnection();
+    await pool.request().query(
+        `EXEC Delete_Place
+        @Cod_Place = '${cod}'`);     
+    res.json({
+        status: 200,
+        message: "El lugar ha sido eliminado"
+    });
+};

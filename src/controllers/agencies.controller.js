@@ -4,7 +4,8 @@ import { getConnection } from "../database/connection";
 export const getAgencies = async (req, res) => {
     
     const pool = await getConnection();
-    const result = await pool.request().query('SELECT * FROM Agencies');    
+    const result = await pool.request().query(`SELECT * FROM Agencies
+                                               WHERE Status = 1`);    
     res.status(200).json({
         status: 'success',
         results: result.recordset.length,
@@ -35,7 +36,8 @@ export const getAgenciesForPlace = async (req, res) => {
                                                 FROM Places XP, Agencies XA, Places_Agencies XPA
                                                 WHERE XP.Slug like '${slug}'
                                                 AND XP.Cod_Place = XPA.Cod_Place
-                                                AND XPA.Cod_Agency = XA.Cod_Agency`);    
+                                                AND XPA.Cod_Agency = XA.Cod_Agency
+                                                AND XA.Status = 1`);    
     res.status(200).json({
         status: 'success',
         results: result.recordset.length,
@@ -88,5 +90,19 @@ export const updateAgency = async (req, res) => {
     res.json({
         status: 200,
         message: "Agencia actualizada con éxito"
+    });
+};
+
+export const deleteAgency = async (req, res) => {
+
+    const cod = req.params.cod;
+        
+    const pool = await getConnection();
+    await pool.request().query(
+        `EXEC Delete_Agency
+        @Cod_Agency = '${cod}'`);     
+    res.json({
+        status: 200,
+        message: "La agencia ha sido eliminada"
     });
 };

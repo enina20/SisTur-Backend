@@ -35,16 +35,18 @@ export const login = async (req, res) => {
         
                 const hotels = await pool.request().query(
                     `SELECT * FROM Hotels
-                    WHERE Cod_Manager = '${cod_manager}'`);
+                    WHERE Cod_Manager = '${cod_manager}'
+                    AND Status = 1`);
                 
                 const agencies = await pool.request().query(
                     `SELECT * FROM Agencies
-                    WHERE Cod_Manager = '${cod_manager}'`);
+                    WHERE Cod_Manager = '${cod_manager}'
+                    AND Status = 1`);
         
                 if(manager.recordset.length >=1){
                     res.status(200).json({
-                        status: 'success',
-                        user : user.recordset,
+                        status:'success',
+                        user:user.recordset,
                         manager:manager.recordset,
                         hotel:hotels.recordset, 
                         agency:agencies.recordset             

@@ -6,7 +6,8 @@ export const getClients = async (req, res) => {
     const result = await pool.request().query(`SELECT xu.User_Name_, xu.User_Slug, xu.User_Email,
                                             xc.Client_id, xc.Cell_Phone, xc.Age, xc.City 
                                             FROM Users xu, Clients xc
-                                            WHERE xu.Cod_User = xc.Cod_User `);    
+                                            WHERE xu.Cod_User = xc.Cod_User
+                                            AND xu.User_Status = 1`);    
     res.status(200).json({
         status: 'success',
         results: result.recordset.length,
@@ -45,12 +46,7 @@ export const createClient = async (req, res) => {
         @Client_City = '${city}', 
         @Cod_User = ${user}
         
-    `); 
-    console.log(id, cellphone, age, city, user);
-    res.json({
-        status: 200,
-        message: "Usuario Cliente creado con éxito"
-    });
+    `);    
 };
 
 export const updateClient = async (req, res) => {
@@ -71,5 +67,17 @@ export const updateClient = async (req, res) => {
     res.json({
         status: 200,
         message: "Información actualizada con éxito"
+    });
+};
+
+export const deleteClient = async (req, res) => {
+    const cod = req.params.cod;        
+    const pool = await getConnection();
+    await pool.request().query(
+        `EXEC Delete_Client
+        @Cod_User = '${cod}'`);     
+    res.json({
+        status: 200,
+        message: "El cliente ha sido eliminado"
     });
 };
