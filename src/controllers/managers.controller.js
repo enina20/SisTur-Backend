@@ -69,10 +69,13 @@ export const updateManager = async (req, res) => {
         @Manager_Age = '${age}',
         @Manager_City = '${city}'       
     `); 
-    // console.log(name, description, location );
+    const result = await pool.request().query(`SELECT * FROM Managers WHERE Cod_Manager = '${cod}' `); 
     res.json({
         status: 200,
-        message: "Información actualizada con éxito"
+        message: "Información actualizada con éxito",
+        data: {
+            hotel: result.recordset
+        }
     });
 };
 

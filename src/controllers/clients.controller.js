@@ -63,10 +63,13 @@ export const updateClient = async (req, res) => {
         @Client_Age = '${age}', 
         @Client_City = '${city}'        
     `); 
-    // console.log(name, description, location );
+    const result = await pool.request().query(`SELECT * FROM Clients WHERE Cod_Client = '${cod}' `); 
     res.json({
         status: 200,
-        message: "Información actualizada con éxito"
+        message: "Información actualizada con éxito",
+        data: {
+            client: result.recordset
+        }
     });
 };
 

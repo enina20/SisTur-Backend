@@ -87,9 +87,12 @@ export const updateTourPackage = async (req, res) => {
         @Description = '${description}', 
         @Location = '${location}'        
     `); 
-    // console.log(name, description, location );
+    const result = await pool.request().query(`SELECT * FROM Tour_Packages WHERE Cod_Tour_Package = '${cod}' `); 
     res.json({
         status: 200,
-        message: "Agencia actualizada con éxito"
+        message: "Información de la habitación ha sido actualizada con éxito",
+        data: {
+            package: result.recordset
+        }
     });
 };

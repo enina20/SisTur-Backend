@@ -1,54 +1,53 @@
 import slugify from "slugify";
 import { getConnection } from "../database/connection";
 
-export const getRooms = async (req, res) => {
+export const getReservations = async (req, res) => {
     
     const pool = await getConnection();
-    const result = await pool.request().query('SELECT * FROM Rooms');    
+    const result = await pool.request().query(`SELECT * FROM Agencies
+                                               WHERE Status = 1`);    
     res.status(200).json({
         status: 'success',
         results: result.recordset.length,
         data: {
-            rooms: result.recordset
+            agencies: result.recordset
         }
     });
 };
 
-export const getRoom = async (req, res) => {
+export const getReservationHotels = async (req, res) => {
     const pool = await getConnection();
-    const cod_Hotel = req.params.cod;
-    const result = await pool.request().query(`SELECT * FROM Rooms WHERE Cod_Hotel = '${cod_Hotel}' `);    
+    const slug = req.params.cod;
+    const result = await pool.request().query(`SELECT * FROM Agencies WHERE Slug LIKE '${slug}' `);    
     res.status(200).json({
         status: 'success',
         results: result.recordset.length,
         data: {
-            rooms: result.recordset
+            agency: result.recordset
         }
     });
 };
 
-export const getRoomsForPlace = async (req, res) => {
+export const getReservationClients = async (req, res) => {
     
     const pool = await getConnection();
     const slug = req.params.cod;
-    const result = await pool.request().query(`SELECT XH.*
-                                                FROM Places XP, Hotels XH, 
-                                                Places_Hotels XPH, Rooms XR
+    const result = await pool.request().query(`SELECT XA.*
+                                                FROM Places XP, Agencies XA, Places_Agencies XPA
                                                 WHERE XP.Slug like '${slug}'
-                                                AND XP.Cod_Place = XPH.Cod_Place
-                                                AND XPH.Cod_Hotel = XH.Cod_Hotel
-                                                AND XH.Cod_Hotel = XR.Cod_Hotel`);    
+                                                AND XP.Cod_Place = XPA.Cod_Place
+                                                AND XPA.Cod_Agency = XA.Cod_Agency
+                                                AND XA.Status = 1`);    
     res.status(200).json({
         status: 'success',
         results: result.recordset.length,
         data: {
-            rooms: result.recordset
+            agencies: result.recordset
         }
     });
 };
 
-
-export const createRoom = async (req, res) => {
+export const createReservation = async (req, res) => {
     const { name, description, location, manager, image_url } = req.body;
     const slug = slugify(name, { lower: true});
     
@@ -70,7 +69,7 @@ export const createRoom = async (req, res) => {
     });
 };
 
-export const updateRoom = async (req, res) => {
+export const updateReservation = async (req, res) => {
     const {name, description, location, } = req.body;
     
     const cod = req.params.cod;
@@ -86,12 +85,23 @@ export const updateRoom = async (req, res) => {
         @Description = '${description}', 
         @Location = '${location}'        
     `); 
-    const result = await pool.request().query(`SELECT * FROM Rooms WHERE Cod_Room = '${cod}' `); 
+    // console.log(name, description, location );
     res.json({
         status: 200,
-        message: "Información de la habitación ha sido actualizada con éxito",
-        data: {
-            room: result.recordset
-        }
+        message: "Agencia actualizada con éxito"
+    });
+};
+
+export const deleteReservation = async (req, res) => {
+
+    const cod = req.params.cod;
+        
+    const pool = await getConnection();
+    await pool.request().query(
+        `EXEC Delete_Agency
+        @Cod_Agency = '${cod}'`);     
+    res.json({
+        status: 200,
+        message: "La agencia ha sido eliminada"
     });
 };

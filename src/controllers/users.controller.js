@@ -52,3 +52,41 @@ export const createUser = async (req, res) => {
         });
     }    
 };
+
+export const updateUser = async (req, res) => {
+    const {name, email, password, } = req.body;
+    
+    const cod = req.params.cod;
+    
+    const slug = slugify(name, { lower: true});
+    
+    const pool = await getConnection();
+    await pool.request().query(`
+        EXEC Update_User
+        @Cod_User = '${cod}',
+        @User_Name_ = '${name}', 
+        @User_Slug = '${slug}', 
+        @User_Email = '${email}'
+        @User_Password = '${password}'     
+    `); 
+    const result = await pool.request().query(`SELECT * FROM Users WHERE Cod_User = '${cod}' `); 
+    res.json({
+        status: 200,
+        message: "Información actualizada con éxito",
+        data: {
+            user: result.recordset
+        }
+    });
+};
+
+export const deleteUser = async (req, res) => {
+    const cod = req.params.cod;        
+    const pool = await getConnection();
+    await pool.request().query(
+        `EXEC Delete_User
+        @Cod_User = '${cod}'`);     
+    res.json({
+        status: 200,
+        message: "El usuario ha sido eliminado"
+    });
+};

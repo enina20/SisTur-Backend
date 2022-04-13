@@ -82,10 +82,14 @@ export const updateHotel = async (req, res) => {
         @Description = '${description}', 
         @Location = '${location}'        
     `); 
-    // console.log(name, description, location );
+
+    const result = await pool.request().query(`SELECT * FROM Hotels WHERE Cod_Hotel = '${cod}' `); 
     res.json({
         status: 200,
-        message: "Información del hotel actualizado con éxito"
+        message: "Información del hotel actualizada con éxito",
+        data: {
+            hotel: result.recordset
+        }
     });
 };
 
