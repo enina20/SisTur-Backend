@@ -4,7 +4,7 @@ import { getConnection } from "../database/connection";
 export const getRooms = async (req, res) => {
     
     const pool = await getConnection();
-    const result = await pool.request().query('SELECT * FROM Rooms');    
+    const result = await pool.request().query('SELECT * FROM Rooms WHERE Status = 1');    
     res.status(200).json({
         status: 'success',
         results: result.recordset.length,
@@ -14,30 +14,11 @@ export const getRooms = async (req, res) => {
     });
 };
 
-export const getRoom = async (req, res) => {
+export const getRoomsHotel = async (req, res) => {
     const pool = await getConnection();
-    const cod_Hotel = req.params.cod;
-    const result = await pool.request().query(`SELECT * FROM Rooms WHERE Cod_Hotel = '${cod_Hotel}' `);    
-    res.status(200).json({
-        status: 'success',
-        results: result.recordset.length,
-        data: {
-            rooms: result.recordset
-        }
-    });
-};
-
-export const getRoomsForPlace = async (req, res) => {
-    
-    const pool = await getConnection();
-    const slug = req.params.cod;
-    const result = await pool.request().query(`SELECT XH.*
-                                                FROM Places XP, Hotels XH, 
-                                                Places_Hotels XPH, Rooms XR
-                                                WHERE XP.Slug like '${slug}'
-                                                AND XP.Cod_Place = XPH.Cod_Place
-                                                AND XPH.Cod_Hotel = XH.Cod_Hotel
-                                                AND XH.Cod_Hotel = XR.Cod_Hotel`);    
+    const codHotel = req.params.cod;
+    const result = await pool.request().query(`SELECT * FROM Rooms WHERE Cod_Hotel = '${codHotel}' 
+                                                AND Status = 1`);    
     res.status(200).json({
         status: 'success',
         results: result.recordset.length,
@@ -49,29 +30,34 @@ export const getRoomsForPlace = async (req, res) => {
 
 
 export const createRoom = async (req, res) => {
-    const { name, description, location, manager, image_url } = req.body;
+    const { name, description, cost, cod_hotel } = req.body;
     const slug = slugify(name, { lower: true});
     
     const pool = await getConnection();
     await pool.request().query(`
-        EXEC Create_Agency
+        EXEC Create_Room
         @Name = '${name}', 
         @Slug = '${slug}', 
-        @Description = '${description}', 
-        @Location = '${location}', 
-        @Cod_Manager = '${manager}',
-        @Image_Url = '${image_url}'
+        @Cost = '${cost}',
+        @Description = '${description}',      
+        @Cod_Hotel = '${cod_hotel}'
         
     `); 
-    console.log(name, description, location, manager );
+    
+    const result = await pool.request().query(`
+    SELECT * FROM Rooms WHERE Cod_Hotel = '${cod_hotel}' `);
+    
     res.json({
         status: 200,
-        message: "Agencia creada con éxito"
+        message: "Habitación creada con éxito",
+        data: {
+            rooms: result.recordset
+        }
     });
 };
 
 export const updateRoom = async (req, res) => {
-    const {name, description, location, } = req.body;
+    const { name, description, cost } = req.body;
     
     const cod = req.params.cod;
     
@@ -79,12 +65,12 @@ export const updateRoom = async (req, res) => {
     
     const pool = await getConnection();
     await pool.request().query(`
-        EXEC Update_Agency
-        @Cod_Agency = '${cod}',
+        EXEC Update_Room
         @Name = '${name}', 
         @Slug = '${slug}', 
         @Description = '${description}', 
-        @Location = '${location}'        
+        @Cost = '${cost}',
+        @Cod_Room = '${cod}'       
     `); 
     const result = await pool.request().query(`SELECT * FROM Rooms WHERE Cod_Room = '${cod}' `); 
     res.json({
@@ -93,5 +79,20 @@ export const updateRoom = async (req, res) => {
         data: {
             room: result.recordset
         }
+    });
+};
+
+
+export const deleteRoom = async (req, res) => {
+
+    const cod = req.params.cod;
+        
+    const pool = await getConnection();
+    await pool.request().query(
+        `EXEC Delete_Room
+        @Cod_Room = '${cod}'`);     
+    res.json({
+        status: 200,
+        message: "La habitación ha sido eliminada"
     });
 };

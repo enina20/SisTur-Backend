@@ -1,24 +1,38 @@
-import slugify from "slugify";
 import { getConnection } from "../database/connection";
 
-export const getReservations = async (req, res) => {
+export const getRegistrations = async (req, res) => {
     
     const pool = await getConnection();
-    const result = await pool.request().query(`SELECT * FROM Agencies
-                                               WHERE Status = 1`);    
+    const result = await pool.request().query(`
+        SELECT Registration_Date as Date, xA.Name as Agency, xT.Name as Package, xU.User_Name_ as Client, xC.Client_Id, xC.Cell_Phone 
+        FROM Registrations_Agency xR, Tour_Packages xT, Clients xC, Agencies xA, Users xU 
+        WHERE xR.Cod_Tour_Package = xT.Cod_Tour_Package
+        AND xR.Cod_Client = xC.Cod_Client
+        AND xC.Cod_User = xU.Cod_User
+        AND xR.Cod_Agency = xA.Cod_Agency
+        `);    
+        
     res.status(200).json({
         status: 'success',
         results: result.recordset.length,
         data: {
-            agencies: result.recordset
+            registrations: result.recordset
         }
     });
 };
 
-export const getReservationAgencies = async (req, res) => {
+export const getRegistrationAgencies = async (req, res) => {
     const pool = await getConnection();
-    const slug = req.params.cod;
-    const result = await pool.request().query(`SELECT * FROM Agencies WHERE Slug LIKE '${slug}' `);    
+    const cod = req.params.cod;
+    const result = await pool.request().query(`
+        SELECT DISTINCT Registration_Date as Date, xT.Name as Package, xU.User_Name_ as Client, xC.Client_Id, xC.Cell_Phone 
+        FROM Registrations_Agency xR, Tour_Packages xT, Clients xC, Agencies xA, Users xU 
+        WHERE xR.Cod_Agency = '${cod}'
+        AND xR.Cod_Tour_Package = xT.Cod_Tour_Package
+        AND xR.Cod_Client = xC.Cod_Client
+        AND xC.Cod_User = xU.Cod_User
+    `);  
+
     res.status(200).json({
         status: 'success',
         results: result.recordset.length,
@@ -28,80 +42,93 @@ export const getReservationAgencies = async (req, res) => {
     });
 };
 
-export const getReservationClients = async (req, res) => {
+export const getRegistrationClients = async (req, res) => {
     
     const pool = await getConnection();
-    const slug = req.params.cod;
-    const result = await pool.request().query(`SELECT XA.*
-                                                FROM Places XP, Agencies XA, Places_Agencies XPA
-                                                WHERE XP.Slug like '${slug}'
-                                                AND XP.Cod_Place = XPA.Cod_Place
-                                                AND XPA.Cod_Agency = XA.Cod_Agency
-                                                AND XA.Status = 1`);    
+    const cod = req.params.cod;
+    const result = await pool.request().query(`
+        SELECT DISTINCT Registration_Date as Date, xA.Name as Agency, xT.Name as Package, xU.User_Name_ as Client, xC.Client_Id, xC.Cell_Phone 
+        FROM Registrations_Agency xR, Tour_Packages xT, Clients xC, Agencies xA, Users xU 
+        WHERE xR.Cod_Tour_Package = xT.Cod_Tour_Package
+        AND xR.Cod_Client = '${cod}'
+        AND xR.Cod_Client = xC.Cod_Client
+        AND xC.Cod_User = xU.Cod_User
+        AND xR.Cod_Agency = xA.Cod_Agency
+        `);    
     res.status(200).json({
         status: 'success',
         results: result.recordset.length,
         data: {
-            agencies: result.recordset
+            client: result.recordset
         }
     });
 };
 
-export const createReservation = async (req, res) => {
-    const { name, description, location, manager, image_url } = req.body;
-    const slug = slugify(name, { lower: true});
-    
+export const createRegistration = async (req, res) => {
+    const { date, cod_tour, cod_client, client_id, cod_agency } = req.body;
+        
     const pool = await getConnection();
     await pool.request().query(`
-        EXEC Create_Agency
-        @Name = '${name}', 
-        @Slug = '${slug}', 
-        @Description = '${description}', 
-        @Location = '${location}', 
-        @Cod_Manager = '${manager}',
-        @Image_Url = '${image_url}'
-        
+        EXEC Create_Registration_Agency
+        @Date = '${date}', 
+        @Cod_Tour_Package = '${cod_tour}', 
+        @Cod_Client = '${cod_client}', 
+        @Client_Id = '${client_id}', 
+        @Cod_Agency = '${cod_agency}'
+                
     `); 
-    console.log(name, description, location, manager );
+    
+    const result = await pool.request().query(`
+        SELECT DISTINCT Registration_Date as Date, xA.Name as Agency, xT.Name as Package, xU.User_Name_ as Client, xC.Client_Id, xC.Cell_Phone 
+        FROM Registrations_Agency xR, Tour_Packages xT, Clients xC, Agencies xA, Users xU 
+        WHERE xR.Cod_Tour_Package = xT.Cod_Tour_Package
+        AND xR.Cod_Client = '${cod_client}'
+        AND xR.Cod_Client = xC.Cod_Client
+        AND xC.Cod_User = xU.Cod_User
+        AND xR.Cod_Agency = xA.Cod_Agency
+    `);
+    
     res.json({
         status: 200,
-        message: "Agencia creada con éxito"
+        message: "Registro realizado con éxito",
+        data: {
+            registration: result.recordset
+        }
     });
 };
 
-export const updateReservation = async (req, res) => {
-    const {name, description, location, } = req.body;
+export const updateRegistration = async (req, res) => {
+    const {date } = req.body;
     
     const cod = req.params.cod;
     
-    const slug = slugify(name, { lower: true});
-    
     const pool = await getConnection();
     await pool.request().query(`
-        EXEC Update_Agency
-        @Cod_Agency = '${cod}',
-        @Name = '${name}', 
-        @Slug = '${slug}', 
-        @Description = '${description}', 
-        @Location = '${location}'        
+        EXEC Update_Registration_Agency
+        @Cod_Registration = '${cod}',
+        @Date = '${date}'        
     `); 
-    // console.log(name, description, location );
+    const result = await pool.request().query(`SELECT * FROM Registrations_Agency WHERE Cod_Registration = '${cod}' `); 
     res.json({
         status: 200,
-        message: "Agencia actualizada con éxito"
+        message: "El registro ha sido actualizado con éxito",
+        data: {
+            registration: result.recordset
+        }
     });
 };
 
-export const deleteReservation = async (req, res) => {
+export const deleteRegistration = async (req, res) => {
 
     const cod = req.params.cod;
         
     const pool = await getConnection();
     await pool.request().query(
-        `EXEC Delete_Agency
-        @Cod_Agency = '${cod}'`);     
+        `EXEC Delete_Registration_Agency
+        @Cod_Registration = '${cod}'`);    
+
     res.json({
         status: 200,
-        message: "La agencia ha sido eliminada"
+        message: "El registro ha sido eliminado"
     });
 };

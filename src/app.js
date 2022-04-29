@@ -13,6 +13,8 @@ import roomsRoutes from './routes/rooms.route';
 import tourPackageRoutes from './routes/tour-package.route'; 
 import RegistrationAgencyRoutes from './routes/registration.agencies.route'; 
 import RegistrationHotelRoutes from './routes/registration.hotels.route';
+import CommnetAgenciesRoutes from './routes/comment.agencies.route';
+import CommnetHotelRoutes from './routes/comment.hotels.route';
 
 const app = express();
 app.use(cors());
@@ -27,6 +29,7 @@ app.use(express.urlencoded({extended: false}));
 //routes
 app.use(agenciesRoutes, clientsRoutes, managersRoutes, placesRoutes,
     loginRoute, usersRoutes,RegistrationAgencyRoutes, RegistrationHotelRoutes,
-    hotelsRoutes, roomsRoutes,tourPackageRoutes);
+    hotelsRoutes, roomsRoutes,tourPackageRoutes, CommnetAgenciesRoutes,
+    CommnetHotelRoutes);
 
 export default app;

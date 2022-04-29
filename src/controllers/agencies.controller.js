@@ -49,7 +49,7 @@ export const getAgenciesForPlace = async (req, res) => {
 
 
 export const createAgency = async (req, res) => {
-    const { name, description, location, manager, image_url } = req.body;
+    const { name, description, location, manager, image_url, place } = req.body;
     const slug = slugify(name, { lower: true});
     
     const pool = await getConnection();
@@ -63,11 +63,26 @@ export const createAgency = async (req, res) => {
         @Image_Url = '${image_url}'
         
     `); 
-    console.log(name, description, location, manager );
+    const result = await pool.request().query(`
+        SELECT * FROM Agencies WHERE Name = '${name}' `); 
+    
+    const agency = result.recordset[0].Cod_Agency;
+        
+    await pool.request().query(`
+        EXEC Create_Places_Agencies
+        @Cod_Place = '${place}', 
+        @Cod_Agency = '${agency}'    
+    `); 
+    
+    
     res.json({
         status: 200,
-        message: "Agencia creada con éxito"
+        message: "Agencia creada con éxito",
+        data: {
+            agency: result.recordset
+        }
     });
+    
 };
 
 export const updateAgency = async (req, res) => {

@@ -40,7 +40,7 @@ export const createUser = async (req, res) => {
         `); 
         const result = await pool.request().query(`SELECT *
                                                 FROM Users
-                                                WHERE User_Slug = '${slug}'`); 
+                                                WHERE User_Name_ = '${name}'`); 
         
         res.json({
             status: 200,

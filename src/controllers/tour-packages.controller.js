@@ -4,7 +4,7 @@ import { getConnection } from "../database/connection";
 export const getTourPackages = async (req, res) => {
     
     const pool = await getConnection();
-    const result = await pool.request().query('SELECT * FROM Tour_Packages');    
+    const result = await pool.request().query('SELECT * FROM Tour_Packages Where Status = 1');    
     res.status(200).json({
         status: 'success',
         results: result.recordset.length,
@@ -14,31 +14,10 @@ export const getTourPackages = async (req, res) => {
     });
 };
 
-export const getTourPackage = async (req, res) => {
+export const getTourPackageAgency = async (req, res) => {
     const pool = await getConnection();
     const codAgency = req.params.cod;
-    const result = await pool.request().query(`SELECT * FROM Tour_Packages WHERE Cod_agency = '${codAgency}' `);    
-    res.status(200).json({
-        status: 'success',
-        results: result.recordset.length,
-        data: {
-            packages: result.recordset
-        }
-    });
-};
-
-export const getTourPackagesForPlace = async (req, res) => {
-    
-    const pool = await getConnection();
-    const slug = req.params.cod;
-    console.log('====>',slug);
-    const result = await pool.request().query(`SELECT XT.*
-                                                FROM Places XP, Agencies XA, 
-                                                Places_Agencies XPA, Tour_Packages XT
-                                                WHERE XP.Slug like '${slug}'
-                                                AND XP.Cod_Place = XPA.Cod_Place
-                                                AND XPA.Cod_Agency = XA.Cod_Agency
-                                                AND XPA.Cod_Agency = XT.Cod_Agency`);    
+    const result = await pool.request().query(`SELECT * FROM Tour_Packages WHERE Cod_agency = '${codAgency}' and Status = 1`);    
     res.status(200).json({
         status: 'success',
         results: result.recordset.length,
@@ -50,29 +29,34 @@ export const getTourPackagesForPlace = async (req, res) => {
 
 
 export const createTourPackage = async (req, res) => {
-    const { name, description, location, manager, image_url } = req.body;
+    const { name, description, location, cost, cod_agency, date } = req.body;
     const slug = slugify(name, { lower: true});
     
     const pool = await getConnection();
     await pool.request().query(`
-        EXEC Create_Agency
+        EXEC Create_Tour_Package
         @Name = '${name}', 
         @Slug = '${slug}', 
+        @Cost = '${cost}',
+        @Date = '${date}',
         @Description = '${description}', 
-        @Location = '${location}', 
-        @Cod_Manager = '${manager}',
-        @Image_Url = '${image_url}'
+        @Location = '${location}',      
+        @Cod_Agency = '${cod_agency}'
         
     `); 
-    console.log(name, description, location, manager );
+    const result = await pool.request().query(`SELECT * FROM Tour_Packages WHERE Name = '${name}' `); 
     res.json({
         status: 200,
-        message: "Agencia creada con éxito"
+        message: "Hotel creado con éxito",
+        data: {
+            package: result.recordset
+        }
     });
+    
 };
 
 export const updateTourPackage = async (req, res) => {
-    const {name, description, location, } = req.body;
+    const { name, description, location, cost } = req.body;
     
     const cod = req.params.cod;
     
@@ -80,19 +64,35 @@ export const updateTourPackage = async (req, res) => {
     
     const pool = await getConnection();
     await pool.request().query(`
-        EXEC Update_Agency
-        @Cod_Agency = '${cod}',
+        EXEC Update_Tour_Package
         @Name = '${name}', 
         @Slug = '${slug}', 
         @Description = '${description}', 
-        @Location = '${location}'        
+        @Location = '${location}', 
+        @Cost = '${cost}',
+        @Cod_Tour_Package = '${cod}'       
     `); 
-    const result = await pool.request().query(`SELECT * FROM Tour_Packages WHERE Cod_Tour_Package = '${cod}' `); 
+    const result = await pool.request().query(`SELECT * FROM Tour_Packages WHERE Cod_Tour_Package = '${cod}'`); 
     res.json({
         status: 200,
-        message: "Información de la habitación ha sido actualizada con éxito",
+        message: "Información del paquete ha sido actualizada con éxito",
         data: {
             package: result.recordset
         }
+    });
+};
+
+
+export const deleteTourPackage = async (req, res) => {
+
+    const cod = req.params.cod;
+        
+    const pool = await getConnection();
+    await pool.request().query(
+        `EXEC Delete_Tour_Package
+        @Cod_Tour_Package = '${cod}'`);     
+    res.json({
+        status: 200,
+        message: "El paquete ha sido eliminado"
     });
 };

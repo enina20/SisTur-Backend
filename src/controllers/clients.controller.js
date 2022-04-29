@@ -21,7 +21,7 @@ export const getClient = async (req, res) => {
     const pool = await getConnection();
     const slug = req.params.cod;
     const result = await pool.request().query(`SELECT xu.User_Name_, xu.User_Slug, xu.User_Email,
-                                              xc.Client_id, xc.Cell_Phone, xc.Age, xc.City 
+                                              xc.Client_id, xc.Cell_Phone, xc.Age, xc.City
                                               FROM Users xu, Clients xc
                                               WHERE xu.User_Slug = '${slug}'
                                               AND xu.Cod_User = xc.Cod_User `);    
@@ -46,7 +46,15 @@ export const createClient = async (req, res) => {
         @Client_City = '${city}', 
         @Cod_User = ${user}
         
-    `);    
+    `);
+    const result = await pool.request().query(`SELECT * FROM Agencies WHERE Client_Id = '${id}' `); 
+    res.json({
+        status: 200,
+        message: "Usuario cliente creado con éxito",
+        data: {
+            client: result.recordset
+        }
+    });    
 };
 
 export const updateClient = async (req, res) => {

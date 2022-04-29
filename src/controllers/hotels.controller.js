@@ -47,7 +47,7 @@ export const getHotelsForPlace = async (req, res) => {
 };
 
 export const createHotel = async (req, res) => {
-    const { name, description, location, manager, image_url } = req.body;
+    const { name, description, location, manager, image_url, place } = req.body;
     const slug = slugify(name, { lower: true});
     
     const pool = await getConnection();
@@ -61,10 +61,23 @@ export const createHotel = async (req, res) => {
         @Image_Url = '${image_url}'
         
     `); 
-    console.log(name, description, location, manager );
+   
+    const result = await pool.request().query(`SELECT * FROM Hotels WHERE Name = '${name}' `); 
+    
+    const hotel = result.recordset[0].Cod_Hotel;
+    
+    await pool.request().query(`
+        EXEC Create_Places_Agencies
+        @Cod_Place = '${place}', 
+        @Cod_Hotel = '${hotel}'    
+    `); 
+
     res.json({
         status: 200,
-        message: "Hotel creado con éxito"
+        message: "Hotel creado con éxito",
+        data: {
+            hotel: result.recordset
+        }
     });
 };
 

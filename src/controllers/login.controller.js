@@ -26,7 +26,7 @@ export const login = async (req, res) => {
                 });        
             }
         }else{
-                if(user.recordset[0].Cod_Role == 2) {
+            if(user.recordset[0].Cod_Role == 2) {
                 const manager = await pool.request().query(
                     `SELECT * FROM Managers
                     WHERE Cod_User = '${cod_user}'`); 
@@ -52,10 +52,26 @@ export const login = async (req, res) => {
                         agency:agencies.recordset             
                     });        
                 }
-            } else{                
+            } else{
+                const clients = await pool.request().query(
+                    `SELECT COUNT(*) AS total FROM Clients`); 
+
+                const managers = await pool.request().query(
+                    `SELECT COUNT(*) AS total FROM Managers`);                 
+        
+                const hotels = await pool.request().query(
+                    `SELECT COUNT(*) AS total FROM Hotels`);
+                
+                const agencies = await pool.request().query(
+                    `SELECT COUNT(*) AS total FROM Agencies`);  
+
                 res.status(200).json({
                     status: 'success',
-                    user : user.recordset           
+                    user : user.recordset,
+                    clients :clients.recordset,
+                    managers :managers.recordset,
+                    hotels :hotels.recordset, 
+                    agencies:agencies.recordset           
                 }); 
             } 
         }         

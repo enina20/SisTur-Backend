@@ -30,9 +30,13 @@ export const createPlace = async (req, res) => {
         
     `); 
     
+    const result = await pool.request().query(`SELECT * FROM Places WHERE Name = '${name}' `); 
     res.json({
         status: 200,
-        message: "Hotel creado con éxito"
+        message: "Información del hotel actualizada con éxito",
+        data: {
+            hotel: result.recordset
+        }
     });
 };
 

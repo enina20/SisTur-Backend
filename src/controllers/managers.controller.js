@@ -1,13 +1,31 @@
-
 import { getConnection } from "../database/connection";
 
 export const getManagers = async (req, res) => {
-    const pool = await getConnection();
+    const pool = await getConnection(); //cambio
+    const result = await pool.request().query(`
+        SELECT xu.User_Name_, xu.User_Slug, xu.User_Email,
+        xc.Manager_nit,xc.Manager_id, xc.Cell_Phone, xc.Age, xc.City, xc.Status 
+        FROM Users xu, Managers xc
+        WHERE xu.Cod_User = xc.Cod_User
+        AND xu.User_Status = 1
+        AND xc.Status = 1 `);    
+    res.status(200).json({
+        status: 'success',
+        results: result.recordset.length,
+        data: {
+            managers: result.recordset
+        }
+    });
+};
+
+
+export const getRequestManagers = async (req, res) => {
+    const pool = await getConnection(); //cambio
     const result = await pool.request().query(`SELECT xu.User_Name_, xu.User_Slug, xu.User_Email,
-                                            xc.Manager_nit,xc.Manager_id, xc.Cell_Phone, xc.Age, xc.City 
+                                            xc.Cod_Manager,xc.Manager_id, xc.Cell_Phone, xc.Age, xc.City,xc.Status 
                                             FROM Users xu, Managers xc
                                             WHERE xu.Cod_User = xc.Cod_User
-                                            AND xu.User_Status = 1 `);    
+                                            AND xc.Status = 0`);    
     res.status(200).json({
         status: 'success',
         results: result.recordset.length,
@@ -33,7 +51,6 @@ export const getManager = async (req, res) => {
         }
     });
 };
-
 export const createManager = async (req, res) => {
     const { nit, id, cellphone, age, city, user } = req.body;
     
@@ -48,11 +65,19 @@ export const createManager = async (req, res) => {
         @Cod_User = ${user}
         
     `); 
-    console.log(nit, id, cellphone, age, city, user );
+    const manager = await pool.request().query(`SELECT * FROM Managers WHERE Manager_id  = '${id}' `);
+    const user_manager = await pool.request().query(`
+        SELECT xu.* FROM Managers xm, Users xu 
+        WHERE xm.Manager_id  = '${id}' 
+        AND xm.Cod_User = xu.Cod_User`); 
     res.json({
         status: 200,
-        message: "Usuario Administrador creado con éxito"
-    });
+        message: "Usuario Administrador creado con éxito",
+        data: {
+            manager: manager.recordset,
+            user: user_manager.recordsets
+        }
+    });    
 };
 
 export const updateManager = async (req, res) => {
@@ -88,5 +113,17 @@ export const deleteManager = async (req, res) => {
     res.json({
         status: 200,
         message: "El cliente ha sido eliminado"
+    });
+};
+
+export const updateRequestManagers = async (req, res) => {
+    const cod = req.params.cod;        
+    const pool = await getConnection();
+    await pool.request().query(
+        `EXEC Update_Request_Manager
+        @Cod_Manager = '${cod}'`);     
+    res.json({
+        status: 200,
+        message: "El administrador ha sido habilitado con éxito"
     });
 };
